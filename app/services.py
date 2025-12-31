@@ -1,7 +1,9 @@
 from .models import db, Staff, Student
 from flask import jsonify
 import bcrypt
+from .check_token import token_required
 
+@token_required
 # get all staff list
 def get_all_staff():
     users = Staff.query.all()
@@ -17,6 +19,7 @@ def get_all_staff():
     ]
     return jsonify(result), 200
 
+@token_required
 # get staff by id
 def get_one_staff(id):
     staff_member = Staff.query.get(id)
@@ -37,6 +40,7 @@ def get_one_staff(id):
 
     return jsonify(ordered_result), 200
 
+@token_required
 # update staff
 def update_staff(id, data):
     staff_member = Staff.query.get(id)
@@ -59,6 +63,7 @@ def update_staff(id, data):
         "user": staff_member.to_dict()
     }), 200
 
+@token_required
 # delete staff
 def delete_staff(id):
     staff_member = Staff.query.get(id)
@@ -76,6 +81,7 @@ def delete_staff(id):
     }), 200
 
 
+@token_required
 # create new student
 def create_new_std(data):
     if not data:
@@ -120,12 +126,14 @@ def create_new_std(data):
         "user": new_student.to_dict()
     }), 201
 
+@token_required
 # get all students list
 def get_all_std():
     students = Student.query.all()
     students_list = [student.to_dict() for student in students]
     return jsonify(students_list), 200
 
+@token_required
 # get one student by id
 def get_one_std(id):
     student = Student.query.get(id)
@@ -135,6 +143,7 @@ def get_one_std(id):
     
     return jsonify(student.to_dict()), 200
 
+@token_required
 # update student data
 def update_std(id, data):
     student = Student.query.get(id)
@@ -160,7 +169,8 @@ def update_std(id, data):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
-    
+
+@token_required
 # delete student data
 def delete_std(id):
     student = Student.query.get(id)

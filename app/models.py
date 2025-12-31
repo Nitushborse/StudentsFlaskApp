@@ -9,7 +9,7 @@ class Staff(db.Model):
     name = db.Column(db.String(30), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     isAdmin = db.Column(db.Boolean, default=False)
-    accessToken = db.Column(db.String(200), nullable=False)
+    # accessToken = db.Column(db.String(200), nullable=False)
     refreshToken = db.Column(db.String(200),nullable=False)
     password = db.Column(db.String(255),nullable=False)
     createdAt = db.Column(db.DateTime, default=datetime.now)

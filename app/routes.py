@@ -1,5 +1,5 @@
 from flask import request, Blueprint
-from .auth import Create_new_user, Login
+from .auth import Create_new_user, Login, Refresh_access_token, Logout
 from .services import get_all_staff, get_one_staff, update_staff, delete_staff, get_all_std, get_one_std, update_std, delete_std, create_new_std
 
 
@@ -33,6 +33,17 @@ def updata_staff_user(id):
 @routes.delete("/api/v1/staff/delete/<int:id>")
 def delete_staff_user(id):
     return delete_staff(id)
+
+@routes.post("/api/v1/staff/logout")
+def logout_user():
+    return Logout()
+
+
+@routes.post("/api/v1/staff/refreshtoken")
+def refresh_token():
+    data = request.get_json()
+    return Refresh_access_token(data)
+
 
 #student Endpoints
 
