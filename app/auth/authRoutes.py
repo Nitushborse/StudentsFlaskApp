@@ -91,7 +91,7 @@ def logout():
         return jsonify({"error": "User not found"}), 404
 
     # Invalidate refresh token
-    user.refreshToken = None
+    user.refreshToken = " "
     # user.isLoggedOut = True
 
     db.session.commit()
