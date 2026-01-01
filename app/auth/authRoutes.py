@@ -13,8 +13,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 auth_bp = Blueprint('auth', __name__)
 
-@token_required
+
 @auth_bp.post("/auth/createnew")
+@token_required
 def createNew():
     data = request.get_json()
     if not data:
@@ -32,12 +33,13 @@ def createNew():
     
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    # accessToken, refreshToken = create_tokens(name)
+    _, refreshToken = create_tokens(name)
 
     new_user = Staff(
         name = name,
         email = email,
         password=hashed_password.decode('utf-8'),
+        refreshToken = refreshToken
     )
 
     db.session.add(new_user)
@@ -78,8 +80,9 @@ def login():
         "user": user.to_dict()
     }), 200
 
-@token_required
+
 @auth_bp.post("/auth/logout")
+@token_required
 def logout():
     user_id = request.user["id"]
 
@@ -119,9 +122,11 @@ def refresh_token():
         new_access_token, new_refresh_token = create_tokens(user.id)
 
         user.refreshToken = new_refresh_token
+        db.session.commit()
 
         return jsonify({
-            "accessToken": new_access_token
+            "accessToken": new_access_token,
+            "refreshToken": new_refresh_token
         }), 200
 
     except jwt.ExpiredSignatureError:

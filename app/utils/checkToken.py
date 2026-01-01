@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-# Secret key for JWT
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # Decorator to check for a valid token

@@ -8,8 +8,9 @@ staff_bp = Blueprint("staff",  __name__)
 
 
 
-@token_required
+
 @staff_bp.get("/staff/getall")
+@token_required
 def get_all_staff():
     users = Staff.query.all()
     result = [
@@ -25,8 +26,9 @@ def get_all_staff():
     return jsonify(result), 200
 
 
-@token_required
+
 @staff_bp.get("/staff/getone/<int:id>")
+@token_required
 def get_one_staff(id:int):
     staff_member = Staff.query.get(id)
     
@@ -46,13 +48,14 @@ def get_one_staff(id:int):
     return jsonify(result), 200
     # return jsonify(ordered_result), 200
 
-@token_required
+
 @staff_bp.put("/staff/update/<int:id>")
+@token_required
 def updata_staff(id):
     data = request.get_json()
     staff_member = Staff.query.get(id)
 
-    if not request.user.get("isAdmin"):
+    if request.user.get("isAdmin") == 0:
         return jsonify({"error": "Admin access required"}), 403
     
     if not staff_member:
@@ -77,12 +80,13 @@ def updata_staff(id):
     }), 200
 
 
-@token_required
+
 @staff_bp.delete("/staff/delete/<int:id>")
+@token_required
 def delete_staff_user(id):
     staff_member = Staff.query.get(id)
     
-    if not request.user.get("isAdmin"):
+    if request.user.get("isAdmin") == 0:
         return jsonify({"error": "Admin access required"}), 403
 
     if not staff_member:

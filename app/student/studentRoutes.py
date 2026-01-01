@@ -6,8 +6,9 @@ from app.models import Student, db
 student_bp = Blueprint("student", __name__)
 
 
-@token_required
+
 @student_bp.post("/student/createnew")
+@token_required
 def create_new_student():
     data = request.get_json()
     if not data:
@@ -55,20 +56,37 @@ def create_new_student():
 
 
 
-@token_required
 @student_bp.get("/student/getall")
+@token_required
 def get_all_students():
-    student = Student.query.get(id)
+    students = Student.query.all()
 
-    if not student:
+    if not students:
         return jsonify({"error": "student not found"}), 404
     
-    return jsonify(student.to_dict()), 200
+    result = [
+        {
+            "id": student.id,
+            "roll_no": student.roll_no,
+            "fristname": student.firstname,
+            "middlename": student.middlename,
+            "lastname": student.lastname,
+            "age": student.age,
+            "email": student.email,
+            "mobileno": student.mobileno,
+            "course": student.course,
+            "year": student.year    
+        }
+        for student in students
+    ]
+
+    return jsonify(result), 200
 
 
 
 
-@student_bp.put("/student/getone/<int:id>")
+@student_bp.get("/student/getone/<int:id>")
+@token_required
 def get_one_student(id):
     student = Student.query.get(id)
 
@@ -81,8 +99,9 @@ def get_one_student(id):
 
 
 
-@token_required
+
 @student_bp.put("/student/update/<int:id>")
+@token_required
 def update_student(id):
     data = request.get_json()
     student = Student.query.get(id)
@@ -112,9 +131,9 @@ def update_student(id):
 
 
 
-    
-@token_required
+
 @student_bp.delete("/student/delete/<int:id>")
+@token_required
 def delete_student(id):
     student = Student.query.get(id)
 
