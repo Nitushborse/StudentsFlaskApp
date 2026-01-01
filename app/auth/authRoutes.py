@@ -1,41 +1,22 @@
-from .models import db, Staff
-from datetime import datetime, timedelta
-from flask import jsonify, request
 import bcrypt
 import jwt
-from dotenv import load_dotenv
 import os
-from .check_token import token_required
+from flask import request, jsonify, Blueprint
+from app.utils.checkToken import token_required
+from app.utils.createToken import create_tokens
+from app.models import Staff, db
+from dotenv import load_dotenv
+
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-def create_tokens(staff_id):
-    access_token = jwt.encode(
-        {
-            "id": staff_id,
-            "type": "access",
-            "exp": datetime.utcnow() + timedelta(minutes=30)
-        },
-        SECRET_KEY,
-        algorithm="HS256"
-    )
-
-    refresh_token = jwt.encode(
-        {
-            "id": staff_id,
-            "type": "refresh",
-            "exp": datetime.utcnow() + timedelta(days=7)
-        },
-        SECRET_KEY,
-        algorithm="HS256"
-    )
-
-    return access_token, refresh_token
-
+auth_bp = Blueprint('auth', __name__)
 
 @token_required
-def Create_new_user(data):
+@auth_bp.post("/auth/createnew")
+def createNew():
+    data = request.get_json()
     if not data:
         return jsonify({"error" : "Data is required"}), 400
 
@@ -68,7 +49,10 @@ def Create_new_user(data):
     }
     ), 201
 
-def Login(data):
+
+@auth_bp.post("/auth/login")
+def login():
+    data = request.get_json()
     if not data:
         return jsonify({"error" : "Missing body in requast"}), 400
     
@@ -94,7 +78,28 @@ def Login(data):
         "user": user.to_dict()
     }), 200
 
-def Refresh_access_token(data):
+@token_required
+@auth_bp.post("/auth/logout")
+def logout():
+    user_id = request.user["id"]
+
+    user = Staff.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Invalidate refresh token
+    user.refreshToken = None
+    # user.isLoggedOut = True
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Logged out successfully"
+    }), 200
+
+@auth_bp.post("/auth/refreshtoken")
+def refresh_token():
+    data = request.get_json()
     if not data or "refreshToken" not in data:
         return jsonify({"error": "Refresh token is required"}), 400
 
@@ -123,22 +128,3 @@ def Refresh_access_token(data):
         return jsonify({"error": "Refresh token expired"}), 401
     except jwt.InvalidTokenError:
         return jsonify({"error": "Invalid refresh token"}), 401
-
-
-@token_required
-def Logout():
-    user_id = request.user["id"]
-
-    user = Staff.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    # Invalidate refresh token
-    user.refreshToken = None
-    # user.isLoggedOut = True
-
-    db.session.commit()
-
-    return jsonify({
-        "message": "Logged out successfully"
-    }), 200

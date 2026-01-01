@@ -1,89 +1,15 @@
-from .models import db, Staff, Student
-from flask import jsonify
-import bcrypt
-from .check_token import token_required
+from flask import request, jsonify, Blueprint
+from app.utils.checkToken import token_required
+from app.models import Student, db
 
-@token_required
-# get all staff list
-def get_all_staff():
-    users = Staff.query.all()
-    result = [
-        {
-            "id":user.id,
-            "name": user.name,
-            "email": user.email,
-            "createdAt": user.createdAt.isoformat(),  # Formatting datetime for JSON
-            "isAdmin": user.isAdmin
-        }
-        for user in users
-    ]
-    return jsonify(result), 200
 
-@token_required
-# get staff by id
-def get_one_staff(id):
-    staff_member = Staff.query.get(id)
-    
-    if not staff_member:
-        return jsonify({"error":"user not found"}), 404
-    
-    result = {
-        "id": staff_member.id,
-        "name": staff_member.name,
-        "email": staff_member.email,
-        "createdAt": staff_member.createdAt,
-        "isAdmin": staff_member.isAdmin
-    }
-    
-    # Ensure the order explicitly
-    ordered_result = {key: result[key] for key in ["id","name", "email", "createdAt", "isAdmin"]}
-
-    return jsonify(ordered_result), 200
-
-@token_required
-# update staff
-def update_staff(id, data):
-    staff_member = Staff.query.get(id)
-    if not staff_member:
-         return jsonify({"error":"user not found"}), 404
-    
-    # Update fields (add any additional validation as needed)
-    staff_member.name = data.get('name', staff_member.name)
-    staff_member.email = data.get('email', staff_member.email)
-    staff_member.isAdmin = data.get('isAdmin', staff_member.isAdmin)
-
-    if 'password' in data:
-        password = data.get('password')
-        staff_member.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-    db.session.commit()
-
-    return jsonify({
-        "message": "Staff member updated successfully",
-        "user": staff_member.to_dict()
-    }), 200
-
-@token_required
-# delete staff
-def delete_staff(id):
-    staff_member = Staff.query.get(id)
-    
-    if not staff_member:
-        return jsonify({"error":"user not found"}), 404
-    
-
-    # Delete the staff member
-    db.session.delete(staff_member)
-    db.session.commit()
-
-    return jsonify({
-        "message": "Staff member deleted successfully"
-    }), 200
+student_bp = Blueprint("student", __name__)
 
 
 @token_required
-# create new student
-def create_new_std(data):
+@student_bp.post("/student/createnew")
+def create_new_student():
+    data = request.get_json()
     if not data:
         return jsonify({"error": "missing request body"}), 400
     
@@ -126,16 +52,12 @@ def create_new_std(data):
         "user": new_student.to_dict()
     }), 201
 
-@token_required
-# get all students list
-def get_all_std():
-    students = Student.query.all()
-    students_list = [student.to_dict() for student in students]
-    return jsonify(students_list), 200
+
+
 
 @token_required
-# get one student by id
-def get_one_std(id):
+@student_bp.get("/student/getall")
+def get_all_students():
     student = Student.query.get(id)
 
     if not student:
@@ -143,9 +65,26 @@ def get_one_std(id):
     
     return jsonify(student.to_dict()), 200
 
+
+
+
+@student_bp.put("/student/getone/<int:id>")
+def get_one_student(id):
+    student = Student.query.get(id)
+
+    if not student:
+        return jsonify({"error": "student not found"}), 404
+    
+    return jsonify(student.to_dict()), 200
+
+
+
+
+
 @token_required
-# update student data
-def update_std(id, data):
+@student_bp.put("/student/update/<int:id>")
+def update_student(id):
+    data = request.get_json()
     student = Student.query.get(id)
 
     if not student:
@@ -169,10 +108,14 @@ def update_std(id, data):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+    
 
+
+
+    
 @token_required
-# delete student data
-def delete_std(id):
+@student_bp.delete("/student/delete/<int:id>")
+def delete_student(id):
     student = Student.query.get(id)
 
     if not student:
@@ -185,3 +128,5 @@ def delete_std(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+

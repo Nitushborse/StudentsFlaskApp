@@ -1,3 +1,13 @@
-__pycache__
+# Python
+__pycache__/
+*.pyc
+
+# Flask
+instance/*
+!instance/.gitignore
+.webassets-cache
+
+# Environment variables
 .env
-.env
+*.env
+.*.env

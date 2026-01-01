@@ -17,11 +17,14 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        from app.routes import routes
-        app.register_blueprint(routes)
+        from app.auth.authRoutes import auth_bp
+        from app.staff.staffRoutes import staff_bp
+        from app.student.studentRoutes import student_bp
+
+
+        app.register_blueprint(auth_bp, url_prefix="/api/v1")
+        app.register_blueprint(staff_bp, url_prefix="/api/v1")
+        app.register_blueprint(student_bp, url_prefix="/api/v1")
         db.create_all()
 
     return app
-
-
-
