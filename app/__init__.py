@@ -78,7 +78,7 @@ def create_app(test_config=None):
     app.register_blueprint(student_bp, url_prefix="/api/v1")
 
     # ---------- CREATE TABLES ----------
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
 
     return app

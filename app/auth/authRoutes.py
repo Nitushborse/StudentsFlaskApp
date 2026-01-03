@@ -15,7 +15,7 @@ auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.post("/auth/createnew")
-@token_required
+# @token_required
 def createNew():
     data = request.get_json()
     if not data:
