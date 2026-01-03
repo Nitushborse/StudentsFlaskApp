@@ -68,7 +68,7 @@ def get_all_students():
         {
             "id": student.id,
             "roll_no": student.roll_no,
-            "fristname": student.firstname,
+            "firstname": student.firstname,
             "middlename": student.middlename,
             "lastname": student.lastname,
             "age": student.age,

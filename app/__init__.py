@@ -28,16 +28,17 @@
 #         db.create_all()
 
 #     return app
-
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from dotenv import load_dotenv
-import os
+from flask_cors import CORS
 
 load_dotenv()
 
 db = SQLAlchemy()
-
+migrate = Migrate()
 
 def create_app(test_config=None):
     app = Flask(__name__)
@@ -56,9 +57,17 @@ def create_app(test_config=None):
     app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', False)
     app.config.setdefault('SECRET_KEY', os.getenv('SECRET_KEY', 'dev-secret'))
 
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": os.getenv('FRONTEND_URL')}},
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    )
+
     # ---------- INIT DB ----------
     db.init_app(app)
-
+    migrate.init_app(app, db)
     # ---------- REGISTER BLUEPRINTS ----------
     from app.auth.authRoutes import auth_bp
     from app.staff.staffRoutes import staff_bp
@@ -69,7 +78,7 @@ def create_app(test_config=None):
     app.register_blueprint(student_bp, url_prefix="/api/v1")
 
     # ---------- CREATE TABLES ----------
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     return app
